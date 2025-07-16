@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cálculo de Porcentagem</title>
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif; /* Usando Inter como fonte principal */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* Garante que o corpo ocupe toda a altura da viewport */
+      margin: 0;
+      background-color: #f0f2f5; /* Cor de fundo suave */
+    }
+    .container {
+      width: 90%; /* Largura fluida para melhor responsividade */
+      max-width: 450px; /* Largura máxima para desktop */
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 12px; /* Cantos mais arredondados */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    }
+    h2 {
+      text-align: center;
+      font-size: 28px; /* Fonte um pouco maior */
+      color: #333;
+      margin-bottom: 25px;
+    }
+    .layer {
+      border: 1px solid #e0e0e0; /* Borda mais suave */
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* Sombra leve para as camadas */
+    }
+    .top {
+      background-color: #fef0cd; /* Amarelo mais suave */
+    }
+    .bottom {
+      background-color: #d1f3d9; /* Verde mais suave */
+    }
+    label {
+      display: block;
+      margin-top: 15px; /* Espaçamento maior entre labels */
+      font-weight: 600; /* Negrito mais pronunciado */
+      color: #555;
+      font-size: 15px;
+    }
+    input, textarea {
+      width: calc(100% - 20px); /* Ajusta a largura para padding */
+      padding: 10px;
+      margin-top: 8px;
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 16px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box; /* Inclui padding e borda na largura total */
+    }
+    textarea {
+      text-align: left; /* Apenas a caixa de texto será alinhada à esquerda */
+      resize: vertical; /* Permite redimensionar verticalmente */
+      min-height: 80px; /* Altura mínima para a área de texto */
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff; /* Azul padrão para botões */
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease; /* Transição suave */
+      width: 100%; /* Botão ocupa a largura total */
+    }
+    button:hover {
+      background-color: #0056b3; /* Azul mais escuro ao passar o mouse */
+      transform: translateY(-2px); /* Efeito de "levantar" */
+    }
+    .center {
+      text-align: center;
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 15px;
+      font-size: 18px;
+    }
+    .aprovada {
+      color: #28a745; /* Verde mais vibrante */
+    }
+    .reprovada {
+      color: #dc3545; /* Vermelho mais vibrante */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>ANOTAÇÕES</h2>
+
+    <div class="layer top center">
+      <label for="atendente">ATENDENTE:</label>
+      <input type="text" id="atendente">
+
+      <label for="aprovado">VALOR APROVADO (R$):</label>
+      <input type="text" id="aprovado" oninput="formatarMoeda(this); copiarParaCampanha()">
+
+      <label for="minimo">MÍNIMO PARA ANÁLISE (R$):</label>
+      <input type="text" id="minimo" oninput="formatarMoeda(this)">
+
+      <button onclick="limparSegundaCamada()">LIMPAR</button>
+    </div>
+
+    <div class="layer bottom center">
+      <label for="saldo">SALDO DEVEDOR (R$):</label>
+      <input type="text" id="saldo" oninput="formatarMoeda(this); calcularDesconto()">
+
+      <label for="campanha">VALOR DA CAMPANHA (R$):</label>
+      <input type="text" id="campanha" oninput="formatarMoeda(this); calcularDesconto()">
+
+      <label for="desconto">DESCONTO OBTIDO (%):</label>
+      <input type="text" id="desconto" readonly>
+
+      <div class="result" id="mensagem"></div>
+
+      <label for="notas">NOTAS:</label>
+      <textarea id="notas" name="notas" rows="4" cols="50"></textarea>
+
+      <button onclick="limparPrimeiraCamada()">LIMPAR</button>
+    </div>
+  </div>
+
+  <script>
+    // Função para formatar o valor como moeda brasileira (R$)
+    function formatarMoeda(campo) {
+      let valor = campo.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+      if (valor === "") {
+        campo.value = "";
+        return;
+      }
+      valor = (parseInt(valor) / 100).toFixed(2); // Converte para número e formata com 2 casas decimais
+      // Substitui o ponto por vírgula para decimais e adiciona pontos para milhares
+      campo.value = valor.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".").replace(".", "#").replace(/\./g, ",").replace("#", ".");
+      campo.value = "R$ " + campo.value;
+    }
+
+    // Função para limpar a formatação de moeda e retornar um número float
+    function limparMoeda(valor) {
+      return parseFloat(valor.replace(/[^\d,]/g, "").replace(",", "."));
+    }
+
+    // Função principal para calcular o desconto e exibir a mensagem
+    function calcularDesconto() {
+      const saldo = document.getElementById("saldo").value;
+      const campanha = document.getElementById("campanha").value;
+      const desconto = document.getElementById("desconto");
+      const mensagem = document.getElementById("mensagem");
+
+      const s = limparMoeda(saldo);
+      const c = limparMoeda(campanha);
+
+      // Verifica se os valores são números válidos e se o saldo é maior que zero
+      if (!isNaN(s) && !isNaN(c) && s > 0) {
+        const porcentagem = 100 - (c / s * 100); // Calcula a porcentagem de desconto
+        desconto.value = porcentagem.toFixed(2).replace(".", ",") + "%"; // Formata para 2 casas decimais e exibe
+
+        // Define a mensagem e a classe CSS com base na porcentagem
+        if (porcentagem > 50) {
+          mensagem.textContent = "Campanha Aprovada!";
+          mensagem.className = "result aprovada";
+        } else {
+          mensagem.textContent = "Sem Campanha";
+          mensagem.className = "result reprovada";
+        }
+      } else {
+        // Limpa os campos se os valores não forem válidos
+        desconto.value = "";
+        mensagem.textContent = "";
+      }
+    }
+
+    // Função para copiar o valor aprovado para o campo de campanha
+    function copiarParaCampanha() {
+      const valor = document.getElementById("aprovado").value;
+      const campoCampanha = document.getElementById("campanha");
+      campoCampanha.value = valor;
+      calcularDesconto(); // Recalcula o desconto após copiar
+    }
+
+    // Função para limpar os campos da primeira camada (saldo, campanha, desconto, mensagem)
+    function limparPrimeiraCamada() {
+      document.getElementById("saldo").value = "";
+      document.getElementById("campanha").value = "";
+      document.getElementById("desconto").value = "";
+      document.getElementById("mensagem").textContent = "";
+    }
+
+    // Função para limpar os campos da segunda camada (atendente, aprovado, minimo)
+    function limparSegundaCamada() {
+      document.getElementById("atendente").value = "";
+      document.getElementById("aprovado").value = "";
+      document.getElementById("minimo").value = "";
+    }
+  </script>
+</body>
+</html>
